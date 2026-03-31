@@ -31,10 +31,10 @@ app.use(cors({
 app.use(express.json());
 
 // Database connection
-const mongoUri = process.env.MONGO_URI;
+const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
 
 if (!mongoUri) {
-  console.error('MONGO_URI is missing. Set it in environment variables before starting the server.');
+  console.error('Mongo connection string is missing. Set MONGO_URI (or MONGODB_URI) in environment variables before starting the server.');
   process.exit(1);
 }
 

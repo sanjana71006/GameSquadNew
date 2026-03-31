@@ -49,6 +49,23 @@ const Dashboard = () => {
   const trending = homeData.trending || [];
   const recent = homeData.recent || [];
 
+  const recommendedGames = (() => {
+    const breakdownEntries = Object.entries(analytics.gameBreakdown || {});
+    const active = breakdownEntries
+      .filter(([gameId]) => Boolean(gameMap[gameId]))
+      .sort((a, b) => (b[1]?.played || 0) - (a[1]?.played || 0))
+      .map(([gameId]) => gameMap[gameId]);
+
+    const seen = new Set();
+    const merged = [...active, ...GAMES].filter((g) => {
+      if (!g || seen.has(g.id)) return false;
+      seen.add(g.id);
+      return true;
+    });
+
+    return merged.slice(0, 3);
+  })();
+
   const toGameName = (gameId) => gameMap[gameId]?.name || gameId;
 
   return (
@@ -183,7 +200,7 @@ const Dashboard = () => {
         </div>
 
         <div style={{ display: 'grid', gap: '12px' }}>
-          {GAMES.slice(0, 3).map((game) => {
+          {recommendedGames.map((game) => {
             const currentLevel = analytics.progress?.[game.id] || 1;
             return (
               <motion.div

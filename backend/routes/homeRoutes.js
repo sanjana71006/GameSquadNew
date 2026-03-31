@@ -4,6 +4,7 @@ const auth = require('../middleware/auth');
 const User = require('../models/User');
 const GameTrend = require('../models/GameTrend');
 const RecentPlay = require('../models/RecentPlay');
+const GameStat = require('../models/GameStat');
 
 const KNOWN_GAME_IDS = [
   'memory-grid',
@@ -30,15 +31,55 @@ router.get('/insights', auth, async (req, res) => {
       }))
     );
 
-    const trending = await GameTrend.find({ gameId: { $in: KNOWN_GAME_IDS } })
-      .sort({ totalPlays: -1, lastPlayedAt: -1 })
-      .limit(5)
-      .lean();
-
-    const recent = await RecentPlay.find({ userId: req.user.id, gameId: { $in: KNOWN_GAME_IDS } })
-      .sort({ lastPlayedAt: -1 })
-      .limit(5)
-      .lean();
+    // Build home analytics from actual gameplay history so existing data is reflected immediately.
+    const [trending, recent] = await Promise.all([
+      GameStat.aggregate([
+        { $match: { gameId: { $in: KNOWN_GAME_IDS } } },
+        {
+          $group: {
+            _id: '$gameId',
+            totalPlays: { $sum: 1 },
+            totalWins: { $sum: { $cond: [{ $eq: ['$result', 'win'] }, 1, 0] } },
+            totalScore: { $sum: '$score' },
+            lastPlayedAt: { $max: '$createdAt' }
+          }
+        },
+        { $sort: { totalPlays: -1, lastPlayedAt: -1 } },
+        { $limit: 5 },
+        {
+          $project: {
+            _id: 0,
+            gameId: '$_id',
+            totalPlays: 1,
+            totalWins: 1,
+            totalScore: 1,
+            lastPlayedAt: 1
+          }
+        }
+      ]),
+      GameStat.aggregate([
+        { $match: { userId: user._id, gameId: { $in: KNOWN_GAME_IDS } } },
+        {
+          $group: {
+            _id: '$gameId',
+            lastPlayedAt: { $max: '$createdAt' },
+            playCount: { $sum: 1 },
+            bestScore: { $max: '$score' }
+          }
+        },
+        { $sort: { lastPlayedAt: -1 } },
+        { $limit: 5 },
+        {
+          $project: {
+            _id: 0,
+            gameId: '$_id',
+            lastPlayedAt: 1,
+            playCount: 1,
+            bestScore: 1
+          }
+        }
+      ])
+    ]);
 
     res.json({
       agenda: {
