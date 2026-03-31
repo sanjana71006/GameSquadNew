@@ -369,3 +369,13 @@ body.light-mode .auth-video-overlay {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-purple);
 }
+
+/* Light Mode Dashboard Enhancements */
+body.light-mode .glass-panel {
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .glass-panel:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
