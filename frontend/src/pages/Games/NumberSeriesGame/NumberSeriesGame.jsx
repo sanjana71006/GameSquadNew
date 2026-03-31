@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../../context/AuthContext';
 import { motion } from 'framer-motion';
+import { SFX } from '../../../utils/sounds';
 
 const LEVELS = [
   { level: 1, targetScore: 5, timeLimit: 45, type: 'basic-linear' },
@@ -11,7 +12,7 @@ const LEVELS = [
 ];
 
 const NumberSeriesGame = () => {
-  const { token, user } = useContext(AuthContext);
+  const { token, user, updateProgress } = useContext(AuthContext);
   const userProgress = user?.progress || {};
   const currentUnlocked = userProgress['number-series'] || 1;
 
@@ -82,6 +83,7 @@ const NumberSeriesGame = () => {
   };
 
   const startGame = () => {
+    SFX.gameStart();
     setCorrectCount(0);
     setTotalAttempted(0);
     setIsPlaying(true);
@@ -106,6 +108,7 @@ const NumberSeriesGame = () => {
     setTotalAttempted(prev => prev + 1);
     
     if (val === series.answer) {
+      SFX.bonus();
       const newCount = correctCount + 1;
       setCorrectCount(newCount);
       if (newCount >= config.targetScore) {
@@ -117,6 +120,8 @@ const NumberSeriesGame = () => {
   };
 
   const endGame = async (result) => {
+    if (result === 'win') SFX.bonus();
+    if (result === 'loss') SFX.gameOver();
     setPhase(result);
     setIsPlaying(false);
 
@@ -124,7 +129,7 @@ const NumberSeriesGame = () => {
     const accuracy = totalAttempted > 0 ? Math.floor((correctCount / totalAttempted) * 100) : 0;
 
     try {
-      await fetch('/api/games/progress', {
+      const res = await fetch('/api/games/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -137,18 +142,20 @@ const NumberSeriesGame = () => {
           moves: totalAttempted
         })
       });
+      const data = await res.json();
+      if (data?.progress) updateProgress(data.progress);
     } catch (err) {
       console.error(err);
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: '20px' }}>
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: '40px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: 'clamp(12px, 2.8vw, 20px)' }}>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: '26px', gap: '12px', flexWrap: 'wrap' }}>
         <div>
           <h2 className="text-gradient">Number Series</h2>
           <select 
-            className="form-input" style={{ width: '150px', padding: '8px' }} 
+            className="form-input" style={{ width: 'min(150px, 46vw)', padding: '8px' }} 
             value={level} onChange={(e) => setLevel(Number(e.target.value))} disabled={isPlaying}
           >
             {[1, 2, 3, 4, 5].map(l => (
@@ -171,30 +178,30 @@ const NumberSeriesGame = () => {
       )}
 
       {phase === 'playing' && (
-        <motion.div className="glass-panel" style={{ width: '100%', maxWidth: '600px', padding: '40px', textAlign: 'center' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '40px', flexWrap: 'wrap' }}>
+        <motion.div className="glass-panel" style={{ width: '100%', maxWidth: '600px', padding: 'clamp(16px, 4vw, 40px)', textAlign: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '24px', flexWrap: 'wrap' }}>
             {series.seq.map((num, i) => (
               <div key={i} style={{
-                fontSize: '2rem',
+                fontSize: 'clamp(1.2rem, 4.2vw, 2rem)',
                 fontWeight: 'bold',
                 color: num === '?' ? 'var(--accent-red)' : 'var(--text-primary)',
                 background: 'rgba(255,255,255,0.05)',
-                padding: '10px 20px',
+                padding: '8px 14px',
                 borderRadius: '8px',
                 border: num === '?' ? '1px dashed var(--accent-red)' : '1px solid var(--border-light)',
-                minWidth: '60px'
+                minWidth: '46px'
               }}>
                 {num}
               </div>
             ))}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
             {series.options.map((opt, i) => (
               <button 
                 key={i} 
                 className="btn-outline" 
-                style={{ fontSize: '1.5rem', padding: '15px', color: 'var(--text-primary)', borderColor: 'var(--accent-red)' }}
+                style={{ fontSize: 'clamp(1.05rem, 3.6vw, 1.5rem)', padding: '12px', color: 'var(--text-primary)', borderColor: 'var(--accent-red)' }}
                 onClick={() => handleGuess(opt)}
                 onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,51,102,0.2)'; e.currentTarget.style.boxShadow = 'var(--glow-red)' }}
                 onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.boxShadow = 'none' }}

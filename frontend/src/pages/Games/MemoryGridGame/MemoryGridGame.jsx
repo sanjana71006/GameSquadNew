@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../../context/AuthContext';
 import { motion } from 'framer-motion';
+import { SFX } from '../../../utils/sounds';
 
 // difficulty scaling: grid size, number of highlighted squares, time limit
 const LEVELS = [
@@ -12,7 +13,7 @@ const LEVELS = [
 ];
 
 const MemoryGridGame = () => {
-  const { token, user } = useContext(AuthContext);
+  const { token, user, updateProgress } = useContext(AuthContext);
   const userProgress = user?.progress || {};
   const currentUnlocked = userProgress['memory-grid'] || 1;
 
@@ -28,6 +29,7 @@ const MemoryGridGame = () => {
   const totalSquares = config.gridSize * config.gridSize;
 
   const startGame = () => {
+    SFX.gameStart();
     // Generate random targets
     const newTargets = [];
     while (newTargets.length < config.targetCount) {
@@ -78,6 +80,8 @@ const MemoryGridGame = () => {
   };
 
   const endGame = async (result) => {
+    if (result === 'win') SFX.bonus();
+    if (result === 'loss') SFX.gameOver();
     setPhase(result); // 'win' or 'loss'
     setIsPlaying(false);
 
@@ -86,7 +90,7 @@ const MemoryGridGame = () => {
     const accuracy = Math.floor((correctGuesses / config.targetCount) * 100);
 
     try {
-      await fetch('/api/games/progress', {
+      const res = await fetch('/api/games/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -99,20 +103,22 @@ const MemoryGridGame = () => {
           moves: guessed.length
         })
       });
+      const data = await res.json();
+      if (data?.progress) updateProgress(data.progress);
     } catch (err) {
       console.error(err);
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: 'clamp(12px, 2.8vw, 20px)' }}>
       {/* Header */}
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: '20px', gap: '12px', flexWrap: 'wrap' }}>
         <div>
           <h2 className="text-gradient">Memory Grid</h2>
           <select 
             className="form-input" 
-            style={{ width: '150px', padding: '8px' }} 
+            style={{ width: 'min(150px, 46vw)', padding: '8px' }} 
             value={level} 
             onChange={(e) => setLevel(Number(e.target.value))}
             disabled={isPlaying}
@@ -141,10 +147,11 @@ const MemoryGridGame = () => {
       {(isPlaying || phase === 'win' || phase === 'loss') && (
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: `repeat(${config.gridSize}, 60px)`, 
+          width: `min(92vw, ${config.gridSize * 72}px)`,
+          gridTemplateColumns: `repeat(${config.gridSize}, minmax(30px, 1fr))`, 
           gap: '8px',
           background: 'rgba(0,0,0,0.3)',
-          padding: '20px',
+          padding: 'clamp(10px, 2vw, 20px)',
           borderRadius: '16px',
           border: '1px solid var(--border-light)'
         }}>
@@ -176,7 +183,7 @@ const MemoryGridGame = () => {
               <motion.div 
                 key={idx}
                 style={{
-                  width: '60px', height: '60px', borderRadius: '10px',
+                  width: '100%', aspectRatio: '1 / 1', borderRadius: '10px',
                   background: bg,
                   boxShadow: glow,
                   border: '1px solid var(--border-light)',

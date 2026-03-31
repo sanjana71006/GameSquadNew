@@ -8,15 +8,37 @@ const path = require('path');
 const authRoutes = require('./routes/authRoutes');
 const gameRoutes = require('./routes/gameRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const friendsRoutes = require('./routes/friendsRoutes');
+const leaderboardRoutes = require('./routes/leaderboardRoutes');
+const homeRoutes = require('./routes/homeRoutes');
 
 const app = express();
 
 // Middleware
-app.use(cors());
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
+  : [];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error('Not allowed by CORS'));
+  }
+}));
 app.use(express.json());
 
 // Database connection
-mongoose.connect("mongodb+srv://Gamer234:gamer1234@cluster0.i2xqnz6.mongodb.net/puzzleDB?retryWrites=true&w=majority")
+const mongoUri = process.env.MONGO_URI;
+
+if (!mongoUri) {
+  console.error('MONGO_URI is missing. Set it in environment variables before starting the server.');
+  process.exit(1);
+}
+
+mongoose.connect(mongoUri)
 .then(() => console.log("Connected to MongoDB"))
 .catch(err => console.log("MongoDB connection error details:", err));
 
@@ -24,6 +46,9 @@ mongoose.connect("mongodb+srv://Gamer234:gamer1234@cluster0.i2xqnz6.mongodb.net/
 app.use('/api/auth', authRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/friends', friendsRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/home', homeRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

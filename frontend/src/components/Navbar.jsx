@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Gamepad2, User as UserIcon, Sun, Moon } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+import { LogOut, LayoutDashboard, Gamepad2, User as UserIcon, Sun, Moon, BarChart3, Users, Trophy } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -27,15 +27,25 @@ const Navbar = () => {
 
   if (!user) return null;
 
+  const navLinkStyle = ({ isActive }) => ({
+    color: isActive ? 'var(--accent-blue)' : 'var(--text-primary)',
+    textDecoration: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '7px',
+    transition: 'color 0.3s',
+    fontWeight: isActive ? 700 : 500
+  });
+
   return (
     <nav style={{
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: '15px 30px',
-      margin: '20px auto',
-      width: '95%',
-      maxWidth: '1200px',
+      margin: '8px auto 16px',
+      width: '96%',
+      maxWidth: '1280px',
       background: 'var(--bg-panel)',
       backdropFilter: 'blur(16px)',
       WebkitBackdropFilter: 'blur(16px)',
@@ -43,7 +53,7 @@ const Navbar = () => {
       border: '1px solid var(--border-light)',
       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
       position: 'sticky',
-      top: '20px',
+      top: '10px',
       zIndex: 100
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -51,12 +61,15 @@ const Navbar = () => {
         <h1 className="text-gradient" style={{ margin: 0, fontSize: '1.5rem' }}>PuzzlePlay Arena</h1>
       </div>
 
-      <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-        <Link to="/dashboard" style={{ color: 'var(--text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', transition: 'color 0.3s' }}>
-          <LayoutDashboard size={20} />
-          <span>Dashboard</span>
-        </Link>
-        <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '20px', borderLeft: '1px solid var(--border-light)', paddingLeft: '20px' }}>
+      <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+        <NavLink to="/dashboard" style={navLinkStyle}><LayoutDashboard size={18} /><span>Home</span></NavLink>
+        <NavLink to="/games" style={navLinkStyle}><Gamepad2 size={18} /><span>Games</span></NavLink>
+        <NavLink to="/analytics" style={navLinkStyle}><BarChart3 size={18} /><span>Analytics</span></NavLink>
+        <NavLink to="/profile" style={navLinkStyle}><UserIcon size={18} /><span>Profile</span></NavLink>
+        <NavLink to="/friends" style={navLinkStyle}><Users size={18} /><span>Friends</span></NavLink>
+        <NavLink to="/leaderboard" style={navLinkStyle}><Trophy size={18} /><span>Leaderboard</span></NavLink>
+
+        <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '6px', borderLeft: '1px solid var(--border-light)', paddingLeft: '14px' }}>
           <UserIcon size={20} />
           <span>{user.name}</span>
         </div>

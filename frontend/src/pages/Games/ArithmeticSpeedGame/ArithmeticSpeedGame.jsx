@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext, useRef } from 'react';
 import { AuthContext } from '../../../context/AuthContext';
 import { motion } from 'framer-motion';
+import { SFX } from '../../../utils/sounds';
 
 const LEVELS = [
   { level: 1, targetScore: 10, timeLimit: 30, maxNum: 10, ops: ['+'] },
@@ -11,7 +12,7 @@ const LEVELS = [
 ];
 
 const ArithmeticSpeedGame = () => {
-  const { token, user } = useContext(AuthContext);
+  const { token, user, updateProgress } = useContext(AuthContext);
   const userProgress = user?.progress || {};
   const currentUnlocked = userProgress['arithmetic-speed'] || 1;
 
@@ -53,6 +54,7 @@ const ArithmeticSpeedGame = () => {
   };
 
   const startGame = () => {
+    SFX.gameStart();
     setCorrectCount(0);
     setTotalAttempted(0);
     setIsPlaying(true);
@@ -99,6 +101,8 @@ const ArithmeticSpeedGame = () => {
   };
 
   const endGame = async (result) => {
+    if (result === 'win') SFX.bonus();
+    if (result === 'loss') SFX.gameOver();
     setPhase(result); // 'win' or 'loss'
     setIsPlaying(false);
 
@@ -106,7 +110,7 @@ const ArithmeticSpeedGame = () => {
     const accuracy = totalAttempted > 0 ? Math.floor((correctCount / totalAttempted) * 100) : 0;
 
     try {
-      await fetch('/api/games/progress', {
+      const res = await fetch('/api/games/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -119,20 +123,22 @@ const ArithmeticSpeedGame = () => {
           moves: totalAttempted
         })
       });
+      const data = await res.json();
+      if (data?.progress) updateProgress(data.progress);
     } catch (err) {
       console.error(err);
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: 'clamp(12px, 2.8vw, 20px)' }}>
       {/* Header */}
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: '40px' }}>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: '26px', gap: '12px', flexWrap: 'wrap' }}>
         <div>
           <h2 className="text-gradient">Arithmetic Speed</h2>
           <select 
             className="form-input" 
-            style={{ width: '150px', padding: '8px' }} 
+            style={{ width: 'min(150px, 46vw)', padding: '8px' }} 
             value={level} 
             onChange={(e) => setLevel(Number(e.target.value))}
             disabled={isPlaying}
@@ -161,19 +167,19 @@ const ArithmeticSpeedGame = () => {
       {phase === 'playing' && (
         <motion.div 
           className="glass-panel" 
-          style={{ width: '100%', maxWidth: '500px', padding: '40px', textAlign: 'center' }}
+          style={{ width: '100%', maxWidth: '500px', padding: 'clamp(16px, 4vw, 40px)', textAlign: 'center' }}
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
-          <div style={{ fontSize: '3rem', fontWeight: 'bold', letterSpacing: '2px', marginBottom: '30px' }}>
+          <div style={{ fontSize: 'clamp(1.6rem, 7vw, 3rem)', fontWeight: 'bold', letterSpacing: '1px', marginBottom: '24px' }}>
             {equation.q}
           </div>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '15px' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <input 
               ref={inputRef}
               type="number" 
               className="form-input" 
-              style={{ fontSize: '1.5rem', textAlign: 'center' }} 
+              style={{ fontSize: 'clamp(1.1rem, 4vw, 1.5rem)', textAlign: 'center', flex: '1 1 220px' }} 
               value={inputVal} 
               onChange={e => setInputVal(e.target.value)} 
             />

@@ -3,6 +3,8 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const GameStat = require('../models/GameStat');
 const User = require('../models/User');
+const GameTrend = require('../models/GameTrend');
+const RecentPlay = require('../models/RecentPlay');
 
 // Save progress after game ends
 router.post('/progress', auth, async (req, res) => {
@@ -21,6 +23,34 @@ router.post('/progress', auth, async (req, res) => {
       moves
     });
     await newStat.save();
+
+    // Update global game trend metrics for trending section.
+    await GameTrend.findOneAndUpdate(
+      { gameId },
+      {
+        $inc: {
+          totalPlays: 1,
+          totalWins: result === 'win' ? 1 : 0,
+          totalScore: score || 0
+        },
+        $set: { lastPlayedAt: new Date() }
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    // Track user-specific recent play history.
+    const existingRecent = await RecentPlay.findOne({ userId: req.user.id, gameId });
+    await RecentPlay.findOneAndUpdate(
+      { userId: req.user.id, gameId },
+      {
+        $inc: { playCount: 1 },
+        $set: {
+          lastPlayedAt: new Date(),
+          bestScore: Math.max(score || 0, existingRecent?.bestScore || 0)
+        }
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
     // Update user's max level if they won and level unlocks the next one
     const user = await User.findById(req.user.id);

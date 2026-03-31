@@ -8,6 +8,10 @@ const User = require('../models/User');
 router.get('/', auth, async (req, res) => {
   try {
     const stats = await GameStat.find({ userId: req.user.id });
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const progress = Object.fromEntries(user.progress.entries());
 
     // Calculate aggregated data
     let totalGames = stats.length;
@@ -25,7 +29,16 @@ router.get('/', auth, async (req, res) => {
 
     // Group by game
     const gameBreakdown = {};
-    const gameIds = ['arrow-path', 'memory-grid', 'arithmetic-speed', 'number-series', 'logic-decision'];
+    const knownGameIds = [
+      'memory-grid',
+      'arithmetic-speed',
+      'number-series',
+      'logic-decision',
+      'crunch-match',
+      'key-quest',
+      'n-queen-puzzle'
+    ];
+    const gameIds = knownGameIds;
     
     gameIds.forEach(id => {
         const gameStats = stats.filter(s => s.gameId === id);
@@ -35,9 +48,6 @@ router.get('/', auth, async (req, res) => {
             avgScore: gameStats.length > 0 ? gameStats.reduce((acc, s) => acc + s.score, 0) / gameStats.length : 0
         };
     });
-
-    const user = await User.findById(req.user.id);
-    const progress = Object.fromEntries(user.progress.entries());
 
     res.json({
       totalGames,

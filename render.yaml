@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: gamesquad-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://gamesquad-frontend.onrender.com
+
+  - type: web
+    name: gamesquad-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    pullRequestPreviewsEnabled: true
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://gamesquad-backend.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

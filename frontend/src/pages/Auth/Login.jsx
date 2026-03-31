@@ -2,6 +2,7 @@ import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
+const introVideoSrc = '/media/intro.mp4';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -36,9 +37,20 @@ const Login = () => {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', width: '100%' }}>
+    <div className="auth-video-page">
+      <video
+        className="auth-video-bg"
+        src={introVideoSrc}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="metadata"
+      />
+      <div className="auth-video-overlay" />
+
       <motion.div 
-        className="glass-panel"
+        className="glass-panel auth-form-card"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}

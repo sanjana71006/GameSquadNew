@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N-Queen Puzzle Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header><h1><i><u>N-Queen Puzzle Game</u></i></h1></header>
+    <section class="main">
+        <div class="rules">
+            <i><h3><u>Important Instruction:</u></h3>
+            <ul>
+                <li>Enter the size of the grid in the pop-up that appeared. If not done Kindly refresh the page.</li></br>
+                <li>The user must arrange chess queens on a N x N grid in such a manner so that no two queens threaten one other; as a result, no two queens must share the same row, column, or diagonal. </li></br>
+                <li>Click on the given cell to mark where the Queen you want to place.</li></br>
+                <li>If your want to clear the grid, just press "Clear Grid" button.</li></br>
+                <li>If you want to see the solution, just press "Get Help" button.</li></br>
+                <li>If you want to change the grid size, just refresh the page and enter new size in the pop-up box.</li></br>
+                <li>If you win a pop will appear saying you WON, else you can retry to solve the puzzle.</li></br>
+            </ul></i>
+        </div>
+        <div class="game_board">
+            <table>
+                <script src="script.js"></script>
+            </table></br>
+            <div class="btn">
+                <button  onclick="clearBoard()" class="buttons">Clear Grid</button>
+                <button  onclick="help()" class="buttons">Get Help</button>
+                <button  onclick="window.location.reload()" class="buttons">Reset Grid Size</button>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

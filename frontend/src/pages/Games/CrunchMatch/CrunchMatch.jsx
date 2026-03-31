@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { AuthContext } from '../../../context/AuthContext';
 import './CrunchMatch.css';
+import { SFX } from '../../../utils/sounds';
 
 const LEVEL_CONFIG = {
   easy: { label: "Easy", bubblesMin: 5, bubblesMax: 6, timeMs: 30000, scoreMult: 1 },
@@ -89,7 +90,7 @@ const Sfx = {
 };
 
 const CrunchMatch = () => {
-  const { token, user } = useContext(AuthContext);
+  const { token, user, updateProgress } = useContext(AuthContext);
   
   // App UI State
   const [appMode, setAppMode] = useState('CHOOSE'); // CHOOSE, SP_SETUP, MP_SETUP, MP_WAIT, GAME, OVER
@@ -149,6 +150,7 @@ const CrunchMatch = () => {
   };
 
   const handleGameOver = () => {
+    SFX.gameOver();
     stopTimer();
     const sr = stateRef.current;
     const p1 = sr.players[0]; const p2 = sr.players[1];
@@ -170,7 +172,12 @@ const CrunchMatch = () => {
       fetch('/api/games/progress', {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ gameId: 'crunch-match', level: lvl, score: p1.score, timeToComplete: Math.round((sr.maxTimeMs - sr.timeLeftMs)/1000) || 1, result: 'win', accuracy: accuracy(p1) })
-      }).catch(()=>{});
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data?.progress) updateProgress(data.progress);
+        })
+        .catch(()=>{});
     }
   };
 
@@ -340,6 +347,7 @@ const CrunchMatch = () => {
   };
 
   const beginGame = (diffParam, multi) => {
+    SFX.gameStart();
     try { Sfx.ensure(); if(Sfx.ctx && Sfx.ctx.state==="suspended") Sfx.ctx.resume(); } catch(_) {}
     setIsMulti(multi);
     const p1Name = user?.name || "Player 1";

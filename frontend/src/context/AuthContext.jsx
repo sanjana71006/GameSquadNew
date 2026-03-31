@@ -40,8 +40,18 @@ export const AuthProvider = ({ children }) => {
     navigate('/login');
   };
 
+  const updateProgress = (progress) => {
+    if (!progress) return;
+    setUser((prev) => {
+      if (!prev) return prev;
+      const nextUser = { ...prev, progress: { ...prev.progress, ...progress } };
+      localStorage.setItem('user', JSON.stringify(nextUser));
+      return nextUser;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, updateProgress, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

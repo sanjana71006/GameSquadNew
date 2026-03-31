@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../../context/AuthContext';
 import { motion } from 'framer-motion';
+import { SFX } from '../../../utils/sounds';
 
 const LEVELS = [
   { level: 1, targetScore: 5, timeLimit: 30, variables: 2 },
@@ -11,7 +12,7 @@ const LEVELS = [
 ];
 
 const LogicDecisionGame = () => {
-  const { token, user } = useContext(AuthContext);
+  const { token, user, updateProgress } = useContext(AuthContext);
   const userProgress = user?.progress || {};
   const currentUnlocked = userProgress['logic-decision'] || 1;
 
@@ -64,6 +65,7 @@ const LogicDecisionGame = () => {
   };
 
   const startGame = () => {
+    SFX.gameStart();
     setCorrectCount(0);
     setTotalAttempted(0);
     setIsPlaying(true);
@@ -101,6 +103,8 @@ const LogicDecisionGame = () => {
   };
 
   const endGame = async (result) => {
+    if (result === 'win') SFX.bonus();
+    if (result === 'loss') SFX.gameOver();
     setPhase(result);
     setIsPlaying(false);
 
@@ -108,7 +112,7 @@ const LogicDecisionGame = () => {
     const accuracy = totalAttempted > 0 ? Math.floor((correctCount / totalAttempted) * 100) : 0;
 
     try {
-      await fetch('/api/games/progress', {
+      const res = await fetch('/api/games/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
@@ -121,18 +125,20 @@ const LogicDecisionGame = () => {
           moves: totalAttempted
         })
       });
+      const data = await res.json();
+      if (data?.progress) updateProgress(data.progress);
     } catch (err) {
       console.error(err);
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: '20px' }}>
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: '40px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: 'clamp(12px, 2.8vw, 20px)' }}>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: '26px', gap: '12px', flexWrap: 'wrap' }}>
         <div>
           <h2 className="text-gradient">Logic Decision</h2>
           <select 
-            className="form-input" style={{ width: '150px', padding: '8px' }} 
+            className="form-input" style={{ width: 'min(150px, 46vw)', padding: '8px' }} 
             value={level} onChange={(e) => setLevel(Number(e.target.value))} disabled={isPlaying}
           >
             {[1, 2, 3, 4, 5].map(l => (
@@ -155,22 +161,22 @@ const LogicDecisionGame = () => {
       )}
 
       {phase === 'playing' && (
-        <motion.div className="glass-panel" style={{ width: '100%', maxWidth: '600px', padding: '40px', textAlign: 'center' }}>
-          <div style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '40px', lineHeight: '1.5' }}>
+        <motion.div className="glass-panel" style={{ width: '100%', maxWidth: '600px', padding: 'clamp(16px, 4vw, 40px)', textAlign: 'center' }}>
+          <div style={{ fontSize: 'clamp(1.05rem, 3.6vw, 1.8rem)', fontWeight: 'bold', marginBottom: '24px', lineHeight: '1.45' }}>
             {promptData.text}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <button 
                 className="btn-primary" 
-                style={{ fontSize: '1.5rem', padding: '15px 40px', background: 'var(--accent-green)' }}
+                style={{ fontSize: 'clamp(1rem, 3.5vw, 1.5rem)', padding: '12px 26px', background: 'var(--accent-green)', flex: '1 1 140px' }}
                 onClick={() => handleDecision(true)}
             >
                 TRUE
             </button>
             <button 
                 className="btn-primary" 
-                style={{ fontSize: '1.5rem', padding: '15px 40px', background: 'var(--accent-red)' }}
+                style={{ fontSize: 'clamp(1rem, 3.5vw, 1.5rem)', padding: '12px 26px', background: 'var(--accent-red)', flex: '1 1 140px' }}
                 onClick={() => handleDecision(false)}
             >
                 FALSE

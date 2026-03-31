@@ -2,169 +2,223 @@ import { useEffect, useState, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Pie } from 'react-chartjs-2';
-import 'chart.js/auto';
-import Navbar from '../../components/Navbar';
-import { Target, Clock, Trophy, Play } from 'lucide-react';
-
-const GAMES = [
-  { id: 'arrow-path', name: 'Arrow Path Puzzle', desc: 'Navigate the grid based on logic and direction.', color: 'var(--accent-blue)' },
-  { id: 'memory-grid', name: 'Memory Grid Game', desc: 'Remember the positions of the activated squares.', color: 'var(--accent-purple)' },
-  { id: 'arithmetic-speed', name: 'Arithmetic Speed', desc: 'Calculate operations as fast as you can.', color: 'var(--accent-green)' },
-  { id: 'number-series', name: 'Number Series', desc: 'Find the missing number in the patterns.', color: 'var(--accent-red)' },
-  { id: 'logic-decision', name: 'Logic Decision', desc: 'Choose the correct outcome based on logical rules.', color: '#ffea00' },
-  { id: 'crunch-match', name: 'Crunch — Mental Math', desc: 'Tap bubbles in order — by value, not by looks.', color: '#00D1FF' }
-];
+import { Brain, Flame, History, Play, Target } from 'lucide-react';
+import { SFX } from '../../utils/sounds';
+import { GAMES } from '../../constants/games';
 
 const Dashboard = () => {
-  const { token } = useContext(AuthContext);
+  const { token, user } = useContext(AuthContext);
+  const [homeData, setHomeData] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchAnalytics = async () => {
+    const fetchHome = async () => {
       try {
-        const res = await fetch('/api/analytics', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.json();
-        setAnalytics(data);
+        const [homeRes, analyticsRes] = await Promise.all([
+          fetch('/api/home/insights', {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          fetch('/api/analytics', {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
+
+        const [homeJson, analyticsJson] = await Promise.all([
+          homeRes.json(),
+          analyticsRes.json()
+        ]);
+
+        setHomeData(homeJson);
+        setAnalytics(analyticsJson);
       } catch (err) {
         console.error(err);
       }
     };
-    fetchAnalytics();
+
+    fetchHome();
   }, [token]);
 
-  if (!analytics) return <div style={{ color: 'white', textAlign: 'center', marginTop: '100px' }}>Loading Dashboard...</div>;
+  if (!homeData || !analytics) {
+    return <div style={{ color: 'white', textAlign: 'center', marginTop: '100px' }}>Loading Home...</div>;
+  }
 
-  const chartData = {
-    labels: ['Wins', 'Losses'],
-    datasets: [{
-      data: [analytics.wins, analytics.losses],
-      backgroundColor: ['rgba(57, 255, 20, 0.8)', 'rgba(255, 51, 102, 0.8)'],
-      borderColor: ['var(--bg-dark)', 'var(--bg-dark)'],
-      borderWidth: 2
-    }]
-  };
-
+  const gameMap = Object.fromEntries(GAMES.map((g) => [g.id, g]));
   const winRatio = analytics.winRatio.toFixed(1);
+  const agendaPoints = homeData.agenda?.points || [];
+  const trending = homeData.trending || [];
+  const recent = homeData.recent || [];
+
+  const toGameName = (gameId) => gameMap[gameId]?.name || gameId;
 
   return (
-    <>
-      <Navbar />
-      <div className="container" style={{ padding: '40px 20px' }}>
-        
-        {/* Stats Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '40px' }}>
-          <motion.div className="glass-panel" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '15px' }} whileHover={{ y: -5 }}>
-            <div style={{ background: 'rgba(0, 240, 255, 0.1)', padding: '15px', borderRadius: '50%' }}>
-              <Trophy color="var(--accent-blue)" size={24} />
-            </div>
-            <div>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Win Ratio</p>
-              <h3 style={{ fontSize: '1.8rem', margin: 0 }}>{winRatio}%</h3>
-            </div>
-          </motion.div>
-
-          <motion.div className="glass-panel" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '15px' }} whileHover={{ y: -5 }}>
-            <div style={{ background: 'rgba(176, 38, 255, 0.1)', padding: '15px', borderRadius: '50%' }}>
-              <Target color="var(--accent-purple)" size={24} />
-            </div>
-            <div>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Accuracy</p>
-              <h3 style={{ fontSize: '1.8rem', margin: 0 }}>{analytics.avgAccuracy.toFixed(1)}%</h3>
-            </div>
-          </motion.div>
-
-          <motion.div className="glass-panel" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '15px' }} whileHover={{ y: -5 }}>
-            <div style={{ background: 'rgba(57, 255, 20, 0.1)', padding: '15px', borderRadius: '50%' }}>
-              <Clock color="var(--accent-green)" size={24} />
-            </div>
-            <div>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Games Played</p>
-              <h3 style={{ fontSize: '1.8rem', margin: 0 }}>{analytics.totalGames}</h3>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Dashboard Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '30px' }}>
-          
-          {/* Games List */}
-          <div>
-            <h2 className="text-gradient" style={{ marginBottom: '20px' }}>Game Arena</h2>
-            <div style={{ display: 'grid', gap: '20px' }}>
-              {GAMES.map((game, i) => {
-                const currentLevel = analytics.progress[game.id] || 1;
-                return (
-                  <motion.div 
-                    key={game.id}
-                    className="glass-panel"
-                    style={{ padding: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: `4px solid ${game.color}` }}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    whileHover={{ scale: 1.02 }}
-                  >
-                    <div>
-                      <h3 style={{ margin: '0 0 5px 0', color: game.color }}>{game.name}</h3>
-                      <p style={{ color: 'var(--text-secondary)', margin: '0 0 10px 0', fontSize: '0.9rem' }}>{game.desc}</p>
-                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                        <span style={{ background: 'rgba(255, 255, 255, 0.1)', padding: '4px 10px', borderRadius: '12px', fontSize: '0.8rem' }}>
-                          Current Level: {currentLevel}/5
-                        </span>
-                      </div>
-                    </div>
-                    <button 
-                      className="btn-primary" 
-                      style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                      onClick={() => navigate(`/game/${game.id}`)}
-                    >
-                      <Play size={16} /> Play
-                    </button>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Charts */}
-          <div>
-            <h2 className="text-gradient" style={{ marginBottom: '20px' }}>Performance</h2>
-            <div className="glass-panel" style={{ padding: '20px', marginBottom: '20px' }}>
-              <h4 style={{ textAlign: 'center', marginBottom: '15px' }}>Win / Loss</h4>
-              {analytics.totalGames > 0 ? (
-                <div style={{ width: '200px', margin: '0 auto' }}>
-                  <Pie data={chartData} options={{ plugins: { legend: { position: 'bottom', labels: { color: 'white' } } } }} />
-                </div>
-              ) : (
-                <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>No games played yet.</p>
-              )}
-            </div>
-            
-            <div className="glass-panel" style={{ padding: '20px' }}>
-              <h4 style={{ textAlign: 'center', marginBottom: '15px' }}>Roadmap</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {GAMES.map(g => (
-                  <div key={g.id}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '5px' }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>{g.name}</span>
-                      <span>Lvl {(analytics.progress[g.id] || 1)}/5</span>
-                    </div>
-                    <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px' }}>
-                      <div style={{ width: `${((analytics.progress[g.id] || 1)/5)*100}%`, height: '100%', background: g.color, borderRadius: '3px' }}></div>
-                    </div>
-                  </div>
-                ))}
+    <div className="container" style={{ padding: '20px' }}>
+      <motion.div
+        className="glass-panel"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        style={{
+          padding: '24px',
+          display: 'grid',
+          gridTemplateColumns: '1.2fr 0.9fr',
+          gap: '16px',
+          marginBottom: '22px',
+          background: 'linear-gradient(120deg, var(--surface-strong), var(--surface-soft))'
+        }}
+      >
+        <div>
+          <h2 style={{ marginBottom: '6px', color: '#ffffff', textShadow: '0 2px 12px rgba(0,0,0,0.45)' }}>Welcome, {user?.name || 'Player'}</h2>
+          <p style={{ color: 'rgba(255,255,255,0.92)', marginBottom: '14px', textShadow: '0 1px 8px rgba(0,0,0,0.45)' }}>
+            {homeData.agenda?.title || 'PuzzlePlay Arena Mission'}
+          </p>
+          <div style={{ display: 'grid', gap: '10px' }}>
+            {agendaPoints.map((point, idx) => (
+              <div key={`agenda-${idx}`} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                <Brain size={16} color="#22d3ee" style={{ marginTop: '2px' }} />
+                <span style={{ color: '#ffffff', textShadow: '0 1px 8px rgba(0,0,0,0.45)' }}>{point}</span>
               </div>
-            </div>
+            ))}
           </div>
-
         </div>
 
+        <div style={{ display: 'grid', gap: '10px', alignContent: 'start' }}>
+          <div className="glass-panel" style={{ padding: '14px' }}>
+            <p style={{ margin: '0 0 3px 0', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Win Ratio</p>
+            <h3 style={{ margin: 0, fontSize: '1.7rem' }}>{winRatio}%</h3>
+          </div>
+          <div className="glass-panel" style={{ padding: '14px' }}>
+            <p style={{ margin: '0 0 3px 0', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Total Games Played</p>
+            <h3 style={{ margin: 0, fontSize: '1.7rem' }}>{analytics.totalGames}</h3>
+          </div>
+          <div className="glass-panel" style={{ padding: '14px' }}>
+            <p style={{ margin: '0 0 3px 0', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Average Accuracy</p>
+            <h3 style={{ margin: 0, fontSize: '1.7rem' }}>{analytics.avgAccuracy.toFixed(1)}%</h3>
+          </div>
+        </div>
+      </motion.div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(330px, 1fr))', gap: '16px', marginBottom: '22px' }}>
+        <motion.div className="glass-panel" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ padding: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <Flame size={18} color="#fb923c" />
+            <h3 style={{ margin: 0 }}>Trending Games</h3>
+          </div>
+
+          <div style={{ display: 'grid', gap: '9px' }}>
+            {trending.map((item, idx) => {
+              const game = gameMap[item.gameId];
+              return (
+                <div
+                  key={`trend-${item.gameId}`}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '34px 1fr auto',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '10px',
+                    borderRadius: '10px',
+                    background: idx === 0 ? 'rgba(251,146,60,0.2)' : 'var(--surface-soft)'
+                  }}
+                >
+                  <strong style={{ color: idx === 0 ? '#fb923c' : 'var(--text-secondary)' }}>#{idx + 1}</strong>
+                  <span>{toGameName(item.gameId)}</span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{item.totalPlays} plays</span>
+                </div>
+              );
+            })}
+            {trending.length === 0 && <p style={{ color: 'var(--text-secondary)', margin: 0 }}>No trend data yet.</p>}
+          </div>
+        </motion.div>
+
+        <motion.div className="glass-panel" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} style={{ padding: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <History size={18} color="#60a5fa" />
+            <h3 style={{ margin: 0 }}>Recently Played</h3>
+          </div>
+
+          <div style={{ display: 'grid', gap: '9px' }}>
+            {recent.map((item) => {
+              const game = gameMap[item.gameId];
+              return (
+                <div
+                  key={`recent-${item.gameId}`}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '10px',
+                    borderRadius: '10px',
+                    background: 'var(--surface-soft)'
+                  }}
+                >
+                  <div>
+                    <strong>{game?.name || item.gameId}</strong>
+                    <p style={{ margin: '3px 0 0 0', color: 'var(--text-secondary)', fontSize: '0.86rem' }}>
+                      Played {item.playCount} time{item.playCount > 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <button
+                    className="btn-outline"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px' }}
+                    onClick={() => {
+                      SFX.gameStart();
+                      navigate(`/game/${item.gameId}`);
+                    }}
+                  >
+                    <Play size={14} /> Play
+                  </button>
+                </div>
+              );
+            })}
+            {recent.length === 0 && <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Play games to build your personal history.</p>}
+          </div>
+        </motion.div>
       </div>
-    </>
+
+      <section>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <Target size={18} color="#22d3ee" />
+          <h3 style={{ margin: 0 }}>Recommended Next Games</h3>
+        </div>
+
+        <div style={{ display: 'grid', gap: '12px' }}>
+          {GAMES.slice(0, 3).map((game) => {
+            const currentLevel = analytics.progress?.[game.id] || 1;
+            return (
+              <motion.div
+                key={game.id}
+                className="glass-panel"
+                whileHover={{ scale: 1.01 }}
+                style={{
+                  padding: '18px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  borderLeft: `4px solid ${game.color}`
+                }}
+              >
+                <div>
+                  <h4 style={{ margin: '0 0 4px 0', color: game.color }}>{game.name}</h4>
+                  <p style={{ margin: '0 0 7px 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{game.desc}</p>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Unlocked Level: {currentLevel}/5</span>
+                </div>
+                <button
+                  className="btn-primary"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  onClick={() => {
+                    SFX.gameStart();
+                    navigate(`/game/${game.id}`);
+                  }}
+                >
+                  <Play size={14} /> Play
+                </button>
+              </motion.div>
+            );
+          })}
+        </div>
+      </section>
+    </div>
   );
 };
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+const introVideoSrc = '/media/intro.mp4';
 
 const Signup = () => {
   const [name, setName] = useState('');
@@ -34,9 +35,20 @@ const Signup = () => {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', width: '100%' }}>
+    <div className="auth-video-page">
+      <video
+        className="auth-video-bg"
+        src={introVideoSrc}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="metadata"
+      />
+      <div className="auth-video-overlay" />
+
       <motion.div 
-        className="glass-panel"
+        className="glass-panel auth-form-card"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}

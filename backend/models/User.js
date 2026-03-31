@@ -4,15 +4,18 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   progress: {
     type: Map,
     of: Number,
     default: {
-      'arrow-path': 1,
       'memory-grid': 1,
       'arithmetic-speed': 1,
       'number-series': 1,
-      'logic-decision': 1
+      'logic-decision': 1,
+      'crunch-match': 1,
+      'key-quest': 1,
+      'n-queen-puzzle': 1
     }
   }
 }, { timestamps: true });
