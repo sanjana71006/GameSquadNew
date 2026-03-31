@@ -124,6 +124,20 @@ body:not(.light-mode) .glass-panel {
   transform: translateY(-2px);
 }
 
+.auth-form-card .btn-primary {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.9), rgba(176, 38, 255, 0.8));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 240, 255, 0.3), inset 0 1px 10px rgba(255, 255, 255, 0.2);
+}
+
+.auth-form-card .btn-primary:hover {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 1), rgba(176, 38, 255, 0.9));
+  box-shadow: 0 15px 40px rgba(0, 240, 255, 0.5), inset 0 1px 10px rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
 .btn-outline {
   background: transparent;
   color: var(--accent-blue);
@@ -152,6 +166,15 @@ body:not(.light-mode) .glass-panel {
   color: var(--text-secondary);
   font-size: 0.9rem;
   letter-spacing: 0.5px;
+}
+
+.auth-form-card .form-label {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+}
+
+body.light-mode .auth-form-card .form-label {
+  color: rgba(15, 23, 42, 0.8);
 }
 
 .form-input {
@@ -305,19 +328,59 @@ h1, h2, h3, h4, h5, h6 {
 .auth-form-card {
   position: relative;
   z-index: 1;
-  background: rgba(18, 22, 34, 0.72);
-  border-color: rgba(255, 255, 255, 0.18);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  background: rgba(18, 22, 34, 0.55) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+  border-left: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), 
+              inset 0 1px 15px rgba(255, 255, 255, 0.15) !important;
+  border-radius: 20px;
 }
 
 .auth-form-card .form-input {
-  background: rgba(0, 0, 0, 0.45);
-  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.auth-form-card .form-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.auth-form-card .form-input:focus {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(0, 240, 255, 0.6) !important;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), inset 0 0 8px rgba(0, 240, 255, 0.1) !important;
 }
 
 body.light-mode .auth-form-card {
-  background: rgba(255, 255, 255, 0.82);
-  border-color: rgba(15, 23, 42, 0.14);
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(2, 132, 199, 0.25) !important;
+  border-top: 1.5px solid rgba(2, 132, 199, 0.35) !important;
+  border-left: 1.5px solid rgba(2, 132, 199, 0.25) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12), 
+              inset 0 1px 15px rgba(2, 132, 199, 0.1) !important;
+}
+
+body.light-mode .auth-form-card .form-input {
+  background: rgba(2, 132, 199, 0.06) !important;
+  border: 1px solid rgba(2, 132, 199, 0.25) !important;
+  color: #0f172a;
+}
+
+body.light-mode .auth-form-card .form-input::placeholder {
+  color: rgba(15, 23, 42, 0.5);
+}
+
+body.light-mode .auth-form-card .form-input:focus {
+  background: rgba(2, 132, 199, 0.1) !important;
+  border-color: rgba(2, 132, 199, 0.6) !important;
+  box-shadow: 0 0 20px rgba(2, 132, 199, 0.2), inset 0 0 8px rgba(2, 132, 199, 0.08) !important;
 }
 
 body.light-mode .auth-video-overlay {
