@@ -6,6 +6,7 @@ import LogicDecisionGame from './LogicDecisionGame/LogicDecisionGame';
 import CrunchMatch from './CrunchMatch/CrunchMatch';
 import KeyQuest from './KeyQuest/KeyQuest';
 import NQueenPuzzleGame from './NQueenPuzzleGame/NQueenPuzzleGame';
+import AmazonMemoryMatch from './AmazonMemoryMatch/AmazonMemoryMatch';
 
 const GameRunner = () => {
   const { gameId } = useParams();
@@ -19,6 +20,7 @@ const GameRunner = () => {
       case 'crunch-match': return <CrunchMatch />;
       case 'key-quest': return <KeyQuest />;
       case 'n-queen-puzzle': return <NQueenPuzzleGame />;
+      case 'amazon-memory-match': return <AmazonMemoryMatch />;
       default: return <div style={{color:'var(--text-primary)', textAlign:'center', marginTop:'50px'}}>Game not found</div>;
     }
   };

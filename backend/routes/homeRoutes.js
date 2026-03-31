@@ -13,7 +13,8 @@ const KNOWN_GAME_IDS = [
   'logic-decision',
   'crunch-match',
   'key-quest',
-  'n-queen-puzzle'
+  'n-queen-puzzle',
+  'amazon-memory-match'
 ];
 
 router.get('/insights', auth, async (req, res) => {

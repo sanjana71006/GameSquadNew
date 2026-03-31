@@ -5,5 +5,6 @@ export const GAMES = [
   { id: 'logic-decision', name: 'Logic Decision', desc: 'Choose the correct outcome based on logical rules.', color: '#ffea00' },
   { id: 'crunch-match', name: 'Crunch - Mental Math', desc: 'Tap bubbles in order - by value, not by looks.', color: '#00D1FF' },
   { id: 'key-quest', name: 'Key Quest', desc: 'Grid key/door puzzle with hidden traps and exit path.', color: '#FFD700' },
-  { id: 'n-queen-puzzle', name: 'N-Queen Puzzle', desc: 'Place queens so none share row, column, or diagonal.', color: '#FB7185' }
+  { id: 'n-queen-puzzle', name: 'N-Queen Puzzle', desc: 'Place queens so none share row, column, or diagonal.', color: '#FB7185' },
+  { id: 'amazon-memory-match', name: 'Amazon Memory Match', desc: 'Flip cards to find matching pairs - fast and accurate!', color: '#ff9900' }
 ];
