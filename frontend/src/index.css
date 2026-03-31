@@ -328,22 +328,22 @@ h1, h2, h3, h4, h5, h6 {
 .auth-form-card {
   position: relative;
   z-index: 1;
-  background: rgba(18, 22, 34, 0.55) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
+  background: rgba(18, 22, 34, 0.35) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
   border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
   border-top: 1.5px solid rgba(255, 255, 255, 0.35) !important;
   border-left: 1.5px solid rgba(255, 255, 255, 0.25) !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), 
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2), 
               inset 0 1px 15px rgba(255, 255, 255, 0.15) !important;
   border-radius: 20px;
 }
 
 .auth-form-card .form-input {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
   border: 1px solid rgba(255, 255, 255, 0.18) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: #ffffff;
   transition: all 0.3s ease;
 }
@@ -353,22 +353,22 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .auth-form-card .form-input:focus {
-  background: rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
   border-color: rgba(0, 240, 255, 0.6) !important;
   box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), inset 0 0 8px rgba(0, 240, 255, 0.1) !important;
 }
 
 body.light-mode .auth-form-card {
-  background: rgba(255, 255, 255, 0.72) !important;
+  background: rgba(255, 255, 255, 0.52) !important;
   border-color: rgba(2, 132, 199, 0.25) !important;
   border-top: 1.5px solid rgba(2, 132, 199, 0.35) !important;
   border-left: 1.5px solid rgba(2, 132, 199, 0.25) !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12), 
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1), 
               inset 0 1px 15px rgba(2, 132, 199, 0.1) !important;
 }
 
 body.light-mode .auth-form-card .form-input {
-  background: rgba(2, 132, 199, 0.06) !important;
+  background: rgba(2, 132, 199, 0.04) !important;
   border: 1px solid rgba(2, 132, 199, 0.25) !important;
   color: #0f172a;
 }
@@ -378,7 +378,7 @@ body.light-mode .auth-form-card .form-input::placeholder {
 }
 
 body.light-mode .auth-form-card .form-input:focus {
-  background: rgba(2, 132, 199, 0.1) !important;
+  background: rgba(2, 132, 199, 0.08) !important;
   border-color: rgba(2, 132, 199, 0.6) !important;
   box-shadow: 0 0 20px rgba(2, 132, 199, 0.2), inset 0 0 8px rgba(2, 132, 199, 0.08) !important;
 }
