@@ -75,41 +75,77 @@ const Dashboard = () => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         style={{
-          padding: '24px',
+          padding: '32px',
           display: 'grid',
           gridTemplateColumns: '1.2fr 0.9fr',
-          gap: '16px',
+          gap: '20px',
           marginBottom: '22px',
-          background: 'linear-gradient(120deg, var(--surface-strong), var(--surface-soft))'
+          background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(51, 65, 85, 0.85) 100%)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(148, 163, 184, 0.3)',
+          borderRadius: '16px',
+          boxShadow: 'inset 0 2px 8px rgba(0, 0, 0, 0.4), 0 8px 32px rgba(0, 0, 0, 0.3)'
         }}
       >
         <div>
-          <h2 style={{ marginBottom: '6px', color: '#ffffff', textShadow: '0 2px 12px rgba(0,0,0,0.45)' }}>Welcome, {user?.name || 'Player'}</h2>
-          <p style={{ color: 'rgba(255,255,255,0.92)', marginBottom: '14px', textShadow: '0 1px 8px rgba(0,0,0,0.45)' }}>
+          <h2 style={{ 
+            marginBottom: '8px', 
+            color: '#ffffff', 
+            textShadow: '0 3px 16px rgba(0,0,0,0.6)',
+            fontSize: 'clamp(1.8rem, 5vw, 2.4rem)',
+            fontWeight: '700'
+          }}>Welcome, {user?.name || 'Player'}</h2>
+          <p style={{ 
+            color: '#e2e8f0', 
+            marginBottom: '18px', 
+            textShadow: '0 2px 8px rgba(0,0,0,0.6)',
+            fontSize: '1.05rem',
+            fontWeight: '500'
+          }}>
             {homeData.agenda?.title || 'PuzzlePlay Arena Mission'}
           </p>
-          <div style={{ display: 'grid', gap: '10px' }}>
+          <div style={{ display: 'grid', gap: '12px' }}>
             {agendaPoints.map((point, idx) => (
-              <div key={`agenda-${idx}`} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                <Brain size={16} color="#22d3ee" style={{ marginTop: '2px' }} />
-                <span style={{ color: '#ffffff', textShadow: '0 1px 8px rgba(0,0,0,0.45)' }}>{point}</span>
+              <div key={`agenda-${idx}`} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <Brain size={18} color="#22d3ee" style={{ marginTop: '2px', flexShrink: 0 }} />
+                <span style={{ 
+                  color: '#e2e8f0', 
+                  textShadow: '0 2px 8px rgba(0,0,0,0.6)',
+                  lineHeight: '1.4',
+                  fontSize: '0.95rem'
+                }}>{point}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div style={{ display: 'grid', gap: '10px', alignContent: 'start' }}>
-          <div className="glass-panel" style={{ padding: '14px' }}>
-            <p style={{ margin: '0 0 3px 0', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Win Ratio</p>
-            <h3 style={{ margin: 0, fontSize: '1.7rem' }}>{winRatio}%</h3>
+        <div style={{ display: 'grid', gap: '12px', alignContent: 'start' }}>
+          <div className="glass-panel" style={{ 
+            padding: '16px',
+            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(34, 211, 238, 0.1))',
+            border: '1px solid rgba(59, 130, 246, 0.4)',
+            borderRadius: '12px'
+          }}>
+            <p style={{ margin: '0 0 4px 0', color: '#94a3b8', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Win Ratio</p>
+            <h3 style={{ margin: 0, fontSize: '2rem', color: '#22d3ee', fontWeight: '700', textShadow: '0 2px 8px rgba(34, 211, 238, 0.3)' }}>{winRatio}%</h3>
           </div>
-          <div className="glass-panel" style={{ padding: '14px' }}>
-            <p style={{ margin: '0 0 3px 0', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Total Games Played</p>
-            <h3 style={{ margin: 0, fontSize: '1.7rem' }}>{analytics.totalGames}</h3>
+          <div className="glass-panel" style={{ 
+            padding: '16px',
+            background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.1))',
+            border: '1px solid rgba(168, 85, 247, 0.4)',
+            borderRadius: '12px'
+          }}>
+            <p style={{ margin: '0 0 4px 0', color: '#94a3b8', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Games Played</p>
+            <h3 style={{ margin: 0, fontSize: '2rem', color: '#a855f7', fontWeight: '700', textShadow: '0 2px 8px rgba(168, 85, 247, 0.3)' }}>{analytics.totalGames}</h3>
           </div>
-          <div className="glass-panel" style={{ padding: '14px' }}>
-            <p style={{ margin: '0 0 3px 0', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Average Accuracy</p>
-            <h3 style={{ margin: 0, fontSize: '1.7rem' }}>{analytics.avgAccuracy.toFixed(1)}%</h3>
+          <div className="glass-panel" style={{ 
+            padding: '16px',
+            background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.1))',
+            border: '1px solid rgba(34, 197, 94, 0.4)',
+            borderRadius: '12px'
+          }}>
+            <p style={{ margin: '0 0 4px 0', color: '#94a3b8', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Average Accuracy</p>
+            <h3 style={{ margin: 0, fontSize: '2rem', color: '#22c55e', fontWeight: '700', textShadow: '0 2px 8px rgba(34, 197, 94, 0.3)' }}>{analytics.avgAccuracy.toFixed(1)}%</h3>
           </div>
         </div>
       </motion.div>
