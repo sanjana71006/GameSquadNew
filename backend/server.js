@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
@@ -57,10 +58,13 @@ app.get('/api/health', (req, res) => {
 
 // Serve React frontend ONLY in production (Render deployment)
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
-  app.get(/.*/, (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-  });
+  const frontendDistPath = path.join(__dirname, '../frontend/dist');
+  if (fs.existsSync(frontendDistPath)) {
+    app.use(express.static(frontendDistPath));
+    app.get(/.*/, (req, res) => {
+      res.sendFile(path.join(frontendDistPath, 'index.html'));
+    });
+  }
 }
 
 const PORT = process.env.PORT || 5000;
