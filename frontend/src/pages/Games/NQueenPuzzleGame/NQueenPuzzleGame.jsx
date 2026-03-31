@@ -178,18 +178,24 @@ const NQueenPuzzleGame = () => {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <select
-            className="form-input"
+            className="form-input game-level-select"
             style={{ width: '150px', padding: '8px' }}
             value={level}
             disabled={status === 'playing'}
-            onChange={(e) => setLevel(Number(e.target.value))}
+            onChange={(e) => {
+              const nextLevel = Number(e.target.value);
+              if (nextLevel > currentUnlocked && currentUnlocked < 5) return;
+              setLevel(nextLevel);
+            }}
           >
             {LEVELS.map((lvl) => (
-              <option key={lvl.level} value={lvl.level} disabled={lvl.level > currentUnlocked && currentUnlocked < 5}>
+              <option key={lvl.level} value={lvl.level}>
                 Level {lvl.level} ({lvl.size}x{lvl.size}) {lvl.level > currentUnlocked ? '🔒' : ''}
               </option>
             ))}
           </select>
+
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Unlocked: Level {currentUnlocked}</span>
 
           <button className="btn-primary" onClick={startGame}>Start</button>
           <button className="btn-outline" onClick={clearBoard}>Clear Grid</button>

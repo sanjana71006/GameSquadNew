@@ -554,18 +554,24 @@ const MissionariesCannibals = () => {
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           <select
-            className="form-input"
+            className="form-input game-level-select"
             style={{ width: '220px', padding: '8px' }}
             value={level}
             disabled={status === 'playing'}
-            onChange={(e) => setLevel(Number(e.target.value))}
+            onChange={(e) => {
+              const nextLevel = Number(e.target.value);
+              if (nextLevel > currentUnlocked && currentUnlocked < 5) return;
+              setLevel(nextLevel);
+            }}
           >
             {LEVELS.map((lvl) => (
-              <option key={lvl.level} value={lvl.level} disabled={lvl.level > currentUnlocked && currentUnlocked < 5}>
+              <option key={lvl.level} value={lvl.level}>
                 Level {lvl.level} ({lvl.missionaries}M/{lvl.cannibals}C, boat {lvl.capacity}) {lvl.level > currentUnlocked ? '🔒' : ''}
               </option>
             ))}
           </select>
+
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Unlocked: Level {currentUnlocked}</span>
 
           <button className="btn-primary" onClick={reset}>Start</button>
           <button className="btn-outline" onClick={reset} disabled={status !== 'playing'}>Restart</button>

@@ -199,6 +199,22 @@ body.light-mode .form-input {
   box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
 }
 
+.game-level-select {
+  font-weight: 700;
+  color: var(--text-primary);
+  border-color: rgba(0, 240, 255, 0.6);
+}
+
+.game-level-select option {
+  background: #0b1220;
+  color: #f2f6ff;
+}
+
+body.light-mode .game-level-select option {
+  background: #ffffff;
+  color: #0f172a;
+}
+
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
@@ -449,4 +465,103 @@ body.light-mode .glass-panel {
 
 body.light-mode .glass-panel:hover {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.game-runner-shell {
+  width: 100%;
+}
+
+.game-runner-content {
+  width: 100%;
+}
+
+.game-runner-content > * {
+  width: 100%;
+  max-width: 100%;
+}
+
+.game-runner-content table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+@media (max-width: 900px) {
+  .game-runner-panel {
+    border-radius: 14px;
+  }
+
+  .game-runner-toolbar {
+    justify-content: center !important;
+    padding-bottom: 4px !important;
+  }
+
+  .game-runner-content {
+    padding: 8px !important;
+  }
+
+  .game-runner-content h1 {
+    font-size: clamp(1.45rem, 8vw, 2.2rem) !important;
+    line-height: 1.15 !important;
+    text-align: center;
+  }
+
+  .game-runner-content h2 {
+    font-size: clamp(1.2rem, 6.3vw, 1.8rem) !important;
+    line-height: 1.2 !important;
+  }
+
+  .game-runner-content h3 {
+    font-size: clamp(1rem, 4.8vw, 1.35rem) !important;
+    line-height: 1.25 !important;
+  }
+
+  .game-runner-content p,
+  .game-runner-content span,
+  .game-runner-content label,
+  .game-runner-content li,
+  .game-runner-content td,
+  .game-runner-content th {
+    font-size: clamp(0.86rem, 3.3vw, 1rem);
+  }
+
+  .game-runner-content .form-input,
+  .game-runner-content select,
+  .game-runner-content input,
+  .game-runner-content button,
+  .game-runner-content textarea {
+    max-width: 100% !important;
+    min-height: 40px;
+    font-size: 16px !important;
+  }
+
+  .game-runner-content [style*='justify-content:space-between'],
+  .game-runner-content [style*='justify-content: space-between'] {
+    gap: 10px !important;
+  }
+
+  .game-runner-content [style*='display:flex'],
+  .game-runner-content [style*='display: flex'] {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 640px) {
+  .game-runner-shell {
+    padding: 8px !important;
+  }
+
+  .game-runner-panel {
+    border-radius: 12px;
+  }
+
+  .game-runner-content {
+    padding: 6px !important;
+  }
+
+  .game-runner-content [style*='position:absolute'],
+  .game-runner-content [style*='position: absolute'] {
+    max-width: 100%;
+  }
 }

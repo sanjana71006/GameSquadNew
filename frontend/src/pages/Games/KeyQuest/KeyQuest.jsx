@@ -414,7 +414,7 @@ const KeyQuest = () => {
         <h2 className="text-gradient">Key Quest</h2>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <span>Level:</span>
-          <select value={selectedLevelId} onChange={(e) => setSelectedLevelId(e.target.value)} style={{ minWidth: '110px', padding: '8px' }}>
+          <select className="form-input game-level-select" value={selectedLevelId} onChange={(e) => setSelectedLevelId(e.target.value)} style={{ minWidth: '130px', padding: '8px' }}>
             {LEVELS.map((lvl) => (<option key={lvl.id} value={lvl.id}>{lvl.name}</option>))}
           </select>
           <button className="btn-primary" onClick={() => { SFX.gameStart(); initializeLevel(); }}>Restart</button>

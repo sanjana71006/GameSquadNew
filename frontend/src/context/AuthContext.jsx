@@ -97,15 +97,21 @@ export const AuthProvider = ({ children }) => {
 
     socket.on('invitation:response', (payload) => {
       pushInvitationEvent(payload);
-      if (payload?.status === 'accepted' && payload?.gameId === 'crunch-match') {
-        setPendingGameStart({
-          invitationId: payload.invitationId,
-          gameId: payload.gameId,
-          gameName: payload.gameName,
-          friendName: payload.friendName,
-          respondedAt: payload.respondedAt
-        });
-      }
+    });
+
+    socket.on('match:start', (payload) => {
+      if (!payload?.matchId || !payload?.gameId) return;
+      setPendingGameStart({
+        invitationId: payload.invitationId,
+        matchId: payload.matchId,
+        gameId: payload.gameId,
+        gameName: payload.gameName,
+        friendName: payload.friendName,
+        friendId: payload.friendId,
+        startAt: payload.startAt,
+        expiresAt: payload.expiresAt,
+        receivedAt: new Date().toISOString()
+      });
     });
 
     socketRef.current = socket;
@@ -211,13 +217,6 @@ export const AuthProvider = ({ children }) => {
     }
 
     if (action === 'accept' && data?.invitation?.gameId === 'crunch-match') {
-      setPendingGameStart({
-        invitationId: data.invitation.id,
-        gameId: data.invitation.gameId,
-        gameName: data.invitation.gameName,
-        friendName: data.invitation.sender?.name,
-        respondedAt: data.invitation.respondedAt || new Date().toISOString()
-      });
       navigate('/game/crunch-match');
     }
 
@@ -236,6 +235,30 @@ export const AuthProvider = ({ children }) => {
 
     return data;
   }, [token, syncNotification]);
+
+  const markAllNotificationsRead = useCallback(async () => {
+    if (!token) return { updatedCount: 0, notifications: [] };
+
+    const data = await fetchJson('/api/notifications/read-all', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (Array.isArray(data?.notifications)) {
+      data.notifications.forEach((item) => syncNotification(item));
+    }
+
+    return data;
+  }, [token, syncNotification]);
+
+  const validateMatchSession = useCallback(async ({ matchId, gameId }) => {
+    if (!matchId) throw new Error('Match id is missing');
+    const query = gameId ? `?gameId=${encodeURIComponent(gameId)}` : '';
+    const data = await fetchJson(`/api/notifications/matches/${matchId}${query}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return data?.match;
+  }, [token]);
 
   const clearPendingGameStart = useCallback(() => {
     setPendingGameStart(null);
@@ -262,6 +285,8 @@ export const AuthProvider = ({ children }) => {
       sendGameInvite,
       respondToInvitation,
       markNotificationRead,
+      markAllNotificationsRead,
+      validateMatchSession,
       clearPendingGameStart,
       clearInvitationEvent
     }}>

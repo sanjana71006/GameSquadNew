@@ -137,18 +137,25 @@ const ArithmeticSpeedGame = () => {
         <div>
           <h2 className="text-gradient">Arithmetic Speed</h2>
           <select 
-            className="form-input" 
+            className="form-input game-level-select" 
             style={{ width: 'min(150px, 46vw)', padding: '8px' }} 
             value={level} 
-            onChange={(e) => setLevel(Number(e.target.value))}
+            onChange={(e) => {
+              const nextLevel = Number(e.target.value);
+              if (nextLevel > currentUnlocked && currentUnlocked < 5) return;
+              setLevel(nextLevel);
+            }}
             disabled={isPlaying}
           >
             {[1, 2, 3, 4, 5].map(l => (
-              <option key={l} value={l} disabled={l > currentUnlocked && currentUnlocked < 5}>
+              <option key={l} value={l}>
                 Level {l} {l > currentUnlocked ? '🔒' : ''}
               </option>
             ))}
           </select>
+          <div style={{ marginTop: 6, color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+            Unlocked: Level {currentUnlocked}
+          </div>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ color: 'var(--accent-green)', fontSize: '1.5rem', fontWeight: 'bold' }}>00:{timeLeft.toString().padStart(2, '0')}</div>

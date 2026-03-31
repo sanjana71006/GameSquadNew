@@ -98,13 +98,15 @@ const CrunchMatch = () => {
     invitationEvents,
     clearInvitationEvent,
     pendingGameStart,
-    clearPendingGameStart
+    clearPendingGameStart,
+    validateMatchSession
   } = useContext(AuthContext);
   
   // App UI State
   const [appMode, setAppMode] = useState('CHOOSE'); // CHOOSE, SP_SETUP, MP_SETUP, MP_WAIT, GAME, OVER
   const [friendUsername, setFriendUsername] = useState('');
   const [pendingInviteId, setPendingInviteId] = useState(null);
+  const [activeMatchId, setActiveMatchId] = useState(null);
   const [inviteError, setInviteError] = useState('');
   const [inviteInfo, setInviteInfo] = useState('');
   const [isMulti, setIsMulti] = useState(false);
@@ -117,6 +119,8 @@ const CrunchMatch = () => {
 
   const field1Ref = useRef(null);
   const field2Ref = useRef(null);
+  const syncedStartTimeoutRef = useRef(null);
+  const syncedStartIntervalRef = useRef(null);
 
   const initPlayer = (id, name) => ({
     id, name, score: 0, brainScore: 0, combo: 1, comboTier: 0,
@@ -373,8 +377,78 @@ const CrunchMatch = () => {
     setTimeout(() => startRound(), 50); // delay to let refs mount
   };
 
+  const clearStartSchedulers = () => {
+    if (syncedStartTimeoutRef.current) {
+      clearTimeout(syncedStartTimeoutRef.current);
+      syncedStartTimeoutRef.current = null;
+    }
+    if (syncedStartIntervalRef.current) {
+      clearInterval(syncedStartIntervalRef.current);
+      syncedStartIntervalRef.current = null;
+    }
+  };
+
+  const scheduleSynchronizedStart = (startAtIso, onStart) => {
+    clearStartSchedulers();
+
+    const targetMs = new Date(startAtIso).getTime();
+    const hasValidStart = Number.isFinite(targetMs);
+    const delayMs = hasValidStart ? Math.max(0, targetMs - Date.now()) : 0;
+
+    if (delayMs > 0) {
+      syncedStartIntervalRef.current = setInterval(() => {
+        const remainingMs = Math.max(0, targetMs - Date.now());
+        const secondsLeft = Math.ceil(remainingMs / 1000);
+        setInviteInfo(`Match locked in. Starting simultaneously in ${secondsLeft}s...`);
+      }, 250);
+    }
+
+    syncedStartTimeoutRef.current = setTimeout(() => {
+      clearStartSchedulers();
+      onStart();
+    }, delayMs);
+  };
+
+  const activateAuthorizedMatch = async (matchEvent) => {
+    if (!matchEvent?.matchId || matchEvent?.gameId !== 'crunch-match') return;
+
+    try {
+      setAppMode('MP_WAIT');
+      setInviteError('');
+      setInviteInfo('Authorizing match session...');
+
+      const match = await validateMatchSession({
+        matchId: matchEvent.matchId,
+        gameId: 'crunch-match'
+      });
+
+      if (!match?.id) {
+        throw new Error('Match authorization failed.');
+      }
+
+      setActiveMatchId(match.id);
+      setFriendUsername(matchEvent.friendName || friendUsername || 'Player 2');
+      scheduleSynchronizedStart(matchEvent.startAt || match.startAt, () => {
+        setInviteInfo('');
+        beginGame('medium', true);
+      });
+    } catch (error) {
+      setActiveMatchId(null);
+      setPendingInviteId(null);
+      setAppMode('MP_SETUP');
+      setInviteInfo('');
+      setInviteError(error.message || 'This match is not available for your account.');
+      showToast('Match authorization failed.', 'err');
+    }
+  };
+
   // --- RENDER ---
-  useEffect(() => { return stopTimer; }, []);
+  useEffect(() => {
+    return () => {
+      stopTimer();
+      clearStartSchedulers();
+    };
+  }, []);
 
   useEffect(() => {
     if (!pendingInviteId) return;
@@ -382,12 +456,11 @@ const CrunchMatch = () => {
     if (!event) return;
 
     if (event.status === 'accepted') {
-      setFriendUsername(event.friendName || friendUsername || 'Player 2');
-      setInviteInfo(`${event.friendName || 'Your friend'} accepted. Starting match...`);
+      setInviteInfo(`${event.friendName || 'Your friend'} accepted. Syncing match...`);
       setInviteError('');
-      setAppMode('GAME');
-      setTimeout(() => beginGame('medium', true), 120);
     } else {
+      clearStartSchedulers();
+      setActiveMatchId(null);
       setAppMode('MP_SETUP');
       setInviteInfo('');
       setInviteError(`${event.friendName || 'Your friend'} is busy right now. Try some other time.`);
@@ -401,13 +474,9 @@ const CrunchMatch = () => {
   useEffect(() => {
     if (!pendingGameStart || pendingGameStart.gameId !== 'crunch-match') return;
 
-    setFriendUsername(pendingGameStart.friendName || 'Player 2');
-    setInviteInfo(`${pendingGameStart.friendName || 'Friend'} joined. Starting match...`);
-    setInviteError('');
-    setAppMode('GAME');
-    setTimeout(() => beginGame('medium', true), 120);
+    void activateAuthorizedMatch(pendingGameStart);
     clearPendingGameStart();
-  }, [pendingGameStart]);
+  }, [pendingGameStart, clearPendingGameStart]);
 
   const sendInviteAndWait = async () => {
     const friend = friendUsername.trim();
@@ -425,6 +494,7 @@ const CrunchMatch = () => {
       setInviteInfo(`Invite sent to ${friend}. Waiting for response...`);
     } catch (error) {
       setAppMode('MP_SETUP');
+      setActiveMatchId(null);
       setInviteInfo('');
       setInviteError(error.message || 'Could not send invite. Please try again.');
     }
@@ -478,6 +548,8 @@ const CrunchMatch = () => {
                    setInviteError('');
                    setInviteInfo('');
                    setPendingInviteId(null);
+                   setActiveMatchId(null);
+                   clearStartSchedulers();
                    setAppMode('CHOOSE');
                  }}
                >
@@ -497,10 +569,13 @@ const CrunchMatch = () => {
             <h2 className="crunch-invite-title" style={{marginBottom: '10px'}}>Waiting For Response...</h2>
             <p className="crunch-invite-subtitle">Invite sent to <strong>{friendUsername}</strong>. Ask your friend to check the notifications bell.</p>
             {inviteInfo && <p className="crunch-invite-info">{inviteInfo}</p>}
+            {activeMatchId && <p className="crunch-invite-subtitle">Match ID: {activeMatchId.slice(-6).toUpperCase()}</p>}
             <div className="crunch-invite-actions" style={{marginTop: '16px'}}>
               <button className="crunch-btn crunch-invite-back" onClick={() => {
+                clearStartSchedulers();
                 setAppMode('MP_SETUP');
                 setPendingInviteId(null);
+                setActiveMatchId(null);
                 setInviteInfo('');
               }}>
                 Back
