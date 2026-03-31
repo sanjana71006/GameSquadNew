@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const gameStatSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  gameId: { type: String, required: true }, // 'arrow-path', 'memory-grid', etc.
+  gameId: { type: String, required: true }, // e.g. 'arrow-path', 'amazon-memory-match', etc.
   level: { type: Number, required: true }, // 1 to 5
   score: { type: Number, required: true },
   timeToComplete: { type: Number, required: true }, // in seconds

@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import { AuthContext } from '../../../context/AuthContext';
 import { motion } from 'framer-motion';
 import { SFX } from '../../../utils/sounds';
@@ -13,25 +13,47 @@ const AmazonMemoryMatch = () => {
   const [moves, setMoves] = useState(0);
   const [gameWon, setGameWon] = useState(false);
   const [totalCards] = useState(ICONS.length * 2);
+  const [startedAt, setStartedAt] = useState(null);
+  const flipBackTimeoutRef = useRef(null);
 
   // Initialize game
   useEffect(() => {
     resetGame();
+    return () => {
+      if (flipBackTimeoutRef.current) {
+        clearTimeout(flipBackTimeoutRef.current);
+        flipBackTimeoutRef.current = null;
+      }
+    };
   }, []);
 
   // Submit score on win
   useEffect(() => {
     if (gameWon && token && user) {
       const accuracy = Math.max(0, 100 - moves * 5);
-      submitScore(accuracy);
+      void submitScore(accuracy);
     }
   }, [gameWon]);
+
+  // Match the plain HTML behavior: alert after finishing
+  useEffect(() => {
+    if (!gameWon) return;
+    const t = setTimeout(() => {
+      // eslint-disable-next-line no-alert
+      alert(`Delivered! Total moves: ${moves}`);
+    }, 500);
+    return () => clearTimeout(t);
+  }, [gameWon, moves]);
 
   const shuffle = (array) => {
     return [...array].sort(() => Math.random() - 0.5);
   };
 
   const resetGame = () => {
+    if (flipBackTimeoutRef.current) {
+      clearTimeout(flipBackTimeoutRef.current);
+      flipBackTimeoutRef.current = null;
+    }
     const newCards = shuffle([...ICONS, ...ICONS]).map((icon, idx) => ({
       id: idx,
       icon,
@@ -43,6 +65,7 @@ const AmazonMemoryMatch = () => {
     setMatchedCount(0);
     setMoves(0);
     setGameWon(false);
+    setStartedAt(Date.now());
     SFX.gameStart?.();
   };
 
@@ -50,7 +73,10 @@ const AmazonMemoryMatch = () => {
     if (gameWon || flippedCards.length >= 2) return;
 
     const card = cards.find((c) => c.id === cardId);
-    if (card.flipped || card.matched) return;
+    if (!card) return;
+
+    // Mirror HTML: ignore already-flipped cards
+    if (flippedCards.includes(cardId) || card.matched) return;
 
     const newFlipped = [...flippedCards, cardId];
     setFlippedCards(newFlipped);
@@ -59,29 +85,33 @@ const AmazonMemoryMatch = () => {
       const card1 = cards.find((c) => c.id === newFlipped[0]);
       const card2 = cards.find((c) => c.id === newFlipped[1]);
 
+      if (!card1 || !card2) return;
+
       setMoves((m) => m + 1);
 
       if (card1.icon === card2.icon) {
         // Match found
         SFX.gameStart?.();
-        const newMatched = matchedCount + 2;
-        setMatchedCount(newMatched);
+        setMatchedCount((prev) => {
+          const next = prev + 2;
+          if (next === totalCards) setGameWon(true);
+          return next;
+        });
 
-        const updatedCards = cards.map((c) =>
+        setCards((prevCards) => prevCards.map((c) =>
           c.id === newFlipped[0] || c.id === newFlipped[1]
             ? { ...c, matched: true }
             : c
-        );
-        setCards(updatedCards);
+        ));
         setFlippedCards([]);
-
-        if (newMatched === totalCards) {
-          setGameWon(true);
-        }
       } else {
         // No match
-        setTimeout(() => {
+        if (flipBackTimeoutRef.current) {
+          clearTimeout(flipBackTimeoutRef.current);
+        }
+        flipBackTimeoutRef.current = setTimeout(() => {
           setFlippedCards([]);
+          flipBackTimeoutRef.current = null;
         }, 1000);
       }
     }
@@ -89,7 +119,11 @@ const AmazonMemoryMatch = () => {
 
   const submitScore = async (accuracy) => {
     try {
-      const res = await fetch('/api/game/submit-score', {
+      const end = Date.now();
+      const duration = startedAt ? Math.max(1, Math.round((end - startedAt) / 1000)) : 1;
+      const score = Math.max(50, 1000 - (moves * 40) - (duration * 2));
+
+      const res = await fetch('/api/games/progress', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -97,9 +131,12 @@ const AmazonMemoryMatch = () => {
         },
         body: JSON.stringify({
           gameId: 'amazon-memory-match',
-          score: moves,
+          level: 1,
+          score,
+          timeToComplete: duration,
           accuracy,
           result: 'win',
+          moves,
         }),
       });
       if (!res.ok) console.error('Score submission failed');
@@ -108,9 +145,9 @@ const AmazonMemoryMatch = () => {
     }
   };
 
-  const displayCards = gameWon ? cards : cards.map((c) => ({
+  const displayCards = cards.map((c) => ({
     ...c,
-    flipped: flippedCards.includes(c.id),
+    flipped: Boolean(gameWon || c.matched || flippedCards.includes(c.id)),
   }));
 
   return (
@@ -161,14 +198,14 @@ const AmazonMemoryMatch = () => {
             onClick={() => handleCardClick(card.id)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            animate={{ rotateY: card.flipped ? 180 : 0 }}
+            transition={{ duration: 0.5 }}
             style={{
               position: 'relative',
               width: '100%',
               aspectRatio: '1/1',
               cursor: card.matched ? 'default' : 'pointer',
               transformStyle: 'preserve-3d',
-              transform: card.flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-              transition: 'transform 0.5s',
             }}
           >
             {/* Card Back */}

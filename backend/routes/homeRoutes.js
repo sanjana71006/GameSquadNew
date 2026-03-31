@@ -7,14 +7,15 @@ const RecentPlay = require('../models/RecentPlay');
 const GameStat = require('../models/GameStat');
 
 const KNOWN_GAME_IDS = [
-  'memory-grid',
   'arithmetic-speed',
   'number-series',
   'logic-decision',
   'crunch-match',
   'key-quest',
   'n-queen-puzzle',
-  'amazon-memory-match'
+  'amazon-memory-match',
+  'water-jug-problem',
+  'tcs-career-ascent'
 ];
 
 router.get('/insights', auth, async (req, res) => {

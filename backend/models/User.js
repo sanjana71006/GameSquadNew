@@ -9,13 +9,16 @@ const userSchema = new mongoose.Schema({
     type: Map,
     of: Number,
     default: {
-      'memory-grid': 1,
       'arithmetic-speed': 1,
       'number-series': 1,
       'logic-decision': 1,
       'crunch-match': 1,
       'key-quest': 1,
-      'n-queen-puzzle': 1
+      'n-queen-puzzle': 1,
+      'missionaries-cannibals': 1,
+      'amazon-memory-match': 1,
+      'water-jug-problem': 1,
+      'tcs-career-ascent': 1
     }
   }
 }, { timestamps: true });

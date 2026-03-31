@@ -30,13 +30,14 @@ router.get('/', auth, async (req, res) => {
     // Group by game
     const gameBreakdown = {};
     const knownGameIds = [
-      'memory-grid',
       'arithmetic-speed',
       'number-series',
       'logic-decision',
       'crunch-match',
       'key-quest',
-      'n-queen-puzzle'
+      'n-queen-puzzle',
+      'water-jug-problem',
+      'tcs-career-ascent'
     ];
     const gameIds = knownGameIds;
     

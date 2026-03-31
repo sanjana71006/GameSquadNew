@@ -2,6 +2,7 @@ import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
+import { fetchJson } from '../../utils/fetchJson';
 const introVideoSrc = '/media/intro.mp4';
 
 const Login = () => {
@@ -17,16 +18,11 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch('/api/auth/login', {
+      const data = await fetchJson('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-      
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
 
       login(data.token, data.user);
     } catch (err) {

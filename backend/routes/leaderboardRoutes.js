@@ -6,13 +6,14 @@ const User = require('../models/User');
 
 const KNOWN_GAMES = [
   'arrow-path',
-  'memory-grid',
   'arithmetic-speed',
   'number-series',
   'logic-decision',
   'crunch-match',
   'key-quest',
-  'n-queen-puzzle'
+  'n-queen-puzzle',
+  'water-jug-problem',
+  'tcs-career-ascent'
 ];
 
 router.get('/', auth, async (_req, res) => {

@@ -57,7 +57,11 @@ const Navbar = () => {
       zIndex: 100
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-        <Gamepad2 color="var(--accent-blue)" size={32} />
+        <img
+          src="/logo.png"
+          alt="PuzzlePlay Arena logo"
+          style={{ width: '34px', height: '34px', objectFit: 'contain' }}
+        />
         <h1 className="text-gradient" style={{ margin: 0, fontSize: '1.5rem' }}>PuzzlePlay Arena</h1>
       </div>
 

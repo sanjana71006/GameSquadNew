@@ -204,6 +204,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   margin-bottom: 0.5em;
   font-weight: 700;
+  color: var(--heading-strong);
 }
 
 .text-gradient {
@@ -211,6 +212,8 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: var(--heading-strong);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
 /* Keep page headings highly readable across the image-heavy background. */
@@ -218,10 +221,15 @@ h1, h2, h3, h4, h5, h6 {
   background: none;
   -webkit-background-clip: border-box;
   background-clip: border-box;
-  -webkit-text-fill-color: #ffffff;
-  color: #ffffff;
+  -webkit-text-fill-color: var(--heading-strong);
+  color: var(--heading-strong);
   font-weight: 800;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+}
+
+body.light-mode .text-gradient,
+body.light-mode .container .text-gradient {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 /* Utilities */

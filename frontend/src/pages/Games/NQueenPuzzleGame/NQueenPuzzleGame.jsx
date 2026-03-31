@@ -169,7 +169,7 @@ const NQueenPuzzleGame = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', padding: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', padding: 'clamp(10px, 2.4vw, 20px)' }}>
       <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', marginBottom: '18px', gap: '10px', flexWrap: 'wrap' }}>
         <div>
           <h2 className="text-gradient">N-Queen Puzzle</h2>
@@ -197,7 +197,7 @@ const NQueenPuzzleGame = () => {
         </div>
       </div>
 
-      <div className="glass-panel" style={{ width: '100%', maxWidth: '840px', padding: '20px', marginBottom: '16px' }}>
+      <div className="glass-panel" style={{ width: '100%', maxWidth: '840px', padding: 'clamp(12px, 2vw, 20px)', marginBottom: '16px' }}>
         <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
           <span>Status: <strong style={{ color: 'var(--text-primary)' }}>{status}</strong></span>
           <span>Queens Placed: <strong style={{ color: 'var(--text-primary)' }}>{queens.length}/{size}</strong></span>
@@ -205,12 +205,16 @@ const NQueenPuzzleGame = () => {
 
         <div
           style={{
+            // Keep the board a screen-friendly square so it doesn't grow too large.
+            width: 'min(70vmin, 520px)',
+            aspectRatio: '1 / 1',
+            margin: '0 auto',
             display: 'grid',
-            gridTemplateColumns: `repeat(${size}, minmax(36px, 1fr))`,
-            gap: '4px',
+            gridTemplateColumns: `repeat(${size}, 1fr)`,
+            gap: 'clamp(2px, 0.8vmin, 6px)',
             background: 'rgba(0,0,0,0.25)',
-            padding: '10px',
-            borderRadius: '12px'
+            padding: 'clamp(8px, 1.2vmin, 12px)',
+            borderRadius: '12px',
           }}
         >
           {Array.from({ length: size * size }).map((_, idx) => {
@@ -239,7 +243,7 @@ const NQueenPuzzleGame = () => {
                         ? 'rgba(255, 255, 255, 0.06)'
                         : 'rgba(255, 255, 255, 0.02)',
                   color: hasQueen ? 'var(--accent-green)' : 'var(--text-secondary)',
-                  fontSize: '1.15rem',
+                  fontSize: 'clamp(0.85rem, 2.6vmin, 1.2rem)',
                   fontWeight: 700,
                   lineHeight: 1
                 }}

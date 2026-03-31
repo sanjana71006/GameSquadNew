@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { fetchJson } from '../../utils/fetchJson';
 const introVideoSrc = '/media/intro.mp4';
 
 const Signup = () => {
@@ -15,16 +16,11 @@ const Signup = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch('/api/auth/signup', {
+      await fetchJson('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password })
       });
-      
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Signup failed');
-      }
 
       navigate('/login');
     } catch (err) {
