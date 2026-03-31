@@ -90,11 +90,23 @@ const Sfx = {
 };
 
 const CrunchMatch = () => {
-  const { token, user, updateProgress } = useContext(AuthContext);
+  const {
+    token,
+    user,
+    updateProgress,
+    sendGameInvite,
+    invitationEvents,
+    clearInvitationEvent,
+    pendingGameStart,
+    clearPendingGameStart
+  } = useContext(AuthContext);
   
   // App UI State
   const [appMode, setAppMode] = useState('CHOOSE'); // CHOOSE, SP_SETUP, MP_SETUP, MP_WAIT, GAME, OVER
   const [friendUsername, setFriendUsername] = useState('');
+  const [pendingInviteId, setPendingInviteId] = useState(null);
+  const [inviteError, setInviteError] = useState('');
+  const [inviteInfo, setInviteInfo] = useState('');
   const [isMulti, setIsMulti] = useState(false);
   
   // Game Render State
@@ -364,9 +376,63 @@ const CrunchMatch = () => {
   // --- RENDER ---
   useEffect(() => { return stopTimer; }, []);
 
+  useEffect(() => {
+    if (!pendingInviteId) return;
+    const event = invitationEvents.find((entry) => entry.invitationId === pendingInviteId);
+    if (!event) return;
+
+    if (event.status === 'accepted') {
+      setFriendUsername(event.friendName || friendUsername || 'Player 2');
+      setInviteInfo(`${event.friendName || 'Your friend'} accepted. Starting match...`);
+      setInviteError('');
+      setAppMode('GAME');
+      setTimeout(() => beginGame('medium', true), 120);
+    } else {
+      setAppMode('MP_SETUP');
+      setInviteInfo('');
+      setInviteError(`${event.friendName || 'Your friend'} is busy right now. Try some other time.`);
+      showToast('Invite rejected. Try some other time.', 'err');
+    }
+
+    clearInvitationEvent(event.invitationId);
+    setPendingInviteId(null);
+  }, [pendingInviteId, invitationEvents]);
+
+  useEffect(() => {
+    if (!pendingGameStart || pendingGameStart.gameId !== 'crunch-match') return;
+
+    setFriendUsername(pendingGameStart.friendName || 'Player 2');
+    setInviteInfo(`${pendingGameStart.friendName || 'Friend'} joined. Starting match...`);
+    setInviteError('');
+    setAppMode('GAME');
+    setTimeout(() => beginGame('medium', true), 120);
+    clearPendingGameStart();
+  }, [pendingGameStart]);
+
+  const sendInviteAndWait = async () => {
+    const friend = friendUsername.trim();
+    if (!friend) {
+      setInviteError('Enter your friend username to send an invite.');
+      return;
+    }
+
+    try {
+      setInviteError('');
+      setInviteInfo('Sending invite...');
+      setAppMode('MP_WAIT');
+      const data = await sendGameInvite({ friendUsername: friend, gameId: 'crunch-match' });
+      setPendingInviteId(data?.notification?.id || null);
+      setInviteInfo(`Invite sent to ${friend}. Waiting for response...`);
+    } catch (error) {
+      setAppMode('MP_SETUP');
+      setInviteInfo('');
+      setInviteError(error.message || 'Could not send invite. Please try again.');
+    }
+  };
+
   if (appMode === 'CHOOSE') {
     return (
-      <div className="crunch-app">
+      <div className="crunch-app crunch-app--menu">
          <main className="crunch-stage"><section className="crunch-panel crunch-panel--start">
             <h1 className="crunch-logo">Crunch</h1>
             <p className="crunch-tagline">Tap mental math bubbles in order — by value, not by looks.</p>
@@ -388,18 +454,36 @@ const CrunchMatch = () => {
 
   if (appMode === 'MP_SETUP') {
     return (
-      <div className="crunch-app">
-         <main className="crunch-stage"><section className="crunch-panel crunch-panel--start">
-            <h1 className="crunch-logo">Multiplayer</h1>
-            <h2 style={{color: 'var(--text)'}}>Invite Online Friend</h2>
-            <input type="text" placeholder="Enter friend's username" style={{padding: '10px', fontSize: '1rem', width: '250px', borderRadius: '8px', border: '2px solid var(--accent)', background: 'var(--surface)', color: 'var(--text)', marginTop: '20px'}} onChange={e=>setFriendUsername(e.target.value)} value={friendUsername} />
-            <div style={{display: 'flex', gap: '10px', marginTop: '20px'}}>
-               <button className="crunch-btn" style={{padding: '10px 20px', background: 'var(--surface)', border: '2px solid var(--border)', color: 'var(--text)', borderRadius: '8px'}} onClick={() => setAppMode('CHOOSE')}>Back</button>
-               <button className="crunch-btn crunch-btn-primary" onClick={() => {
-                 if(!friendUsername.trim()) return;
-                 setAppMode('MP_WAIT');
-                 setTimeout(() => { beginGame('medium', true); }, 2000);
-               }}>Send Invite</button>
+      <div className="crunch-app crunch-app--menu">
+         <main className="crunch-stage"><section className="crunch-panel crunch-panel--start crunch-invite-card">
+            <h1 className="crunch-logo">Multiplayer Arena</h1>
+            <h2 className="crunch-invite-title">Invite Online Friend</h2>
+            <p className="crunch-invite-subtitle">Your friend receives a real-time notification and can accept or reject instantly.</p>
+
+            <input
+              type="text"
+              placeholder="Enter friend's username"
+              className="crunch-invite-input"
+              onChange={e => setFriendUsername(e.target.value)}
+              value={friendUsername}
+            />
+
+            {inviteError && <p className="crunch-invite-error">{inviteError}</p>}
+            {!inviteError && inviteInfo && <p className="crunch-invite-info">{inviteInfo}</p>}
+
+            <div className="crunch-invite-actions">
+               <button
+                 className="crunch-btn crunch-invite-back"
+                 onClick={() => {
+                   setInviteError('');
+                   setInviteInfo('');
+                   setPendingInviteId(null);
+                   setAppMode('CHOOSE');
+                 }}
+               >
+                 Back
+               </button>
+               <button className="crunch-btn crunch-btn-primary crunch-invite-send" onClick={sendInviteAndWait}>Send Invite</button>
             </div>
          </section></main>
       </div>
@@ -408,10 +492,20 @@ const CrunchMatch = () => {
 
   if (appMode === 'MP_WAIT') {
     return (
-      <div className="crunch-app">
-         <main className="crunch-stage"><section className="crunch-panel crunch-panel--start">
-            <h2 style={{color: 'var(--text)'}}>Connecting...</h2>
-            <p style={{color: 'var(--muted)', marginTop: '10px'}}>Waiting for {friendUsername} to join the arena...</p>
+      <div className="crunch-app crunch-app--menu">
+         <main className="crunch-stage"><section className="crunch-panel crunch-panel--start crunch-invite-card">
+            <h2 className="crunch-invite-title" style={{marginBottom: '10px'}}>Waiting For Response...</h2>
+            <p className="crunch-invite-subtitle">Invite sent to <strong>{friendUsername}</strong>. Ask your friend to check the notifications bell.</p>
+            {inviteInfo && <p className="crunch-invite-info">{inviteInfo}</p>}
+            <div className="crunch-invite-actions" style={{marginTop: '16px'}}>
+              <button className="crunch-btn crunch-invite-back" onClick={() => {
+                setAppMode('MP_SETUP');
+                setPendingInviteId(null);
+                setInviteInfo('');
+              }}>
+                Back
+              </button>
+            </div>
          </section></main>
       </div>
     );
@@ -419,7 +513,7 @@ const CrunchMatch = () => {
 
   if (appMode === 'SP_SETUP') {
     return (
-      <div className="crunch-app">
+      <div className="crunch-app crunch-app--menu">
          <main className="crunch-stage"><section className="crunch-panel crunch-panel--start">
             <h1 className="crunch-logo">Single Player</h1>
             <div className="crunch-difficulty-grid" style={{marginTop: '20px'}}>

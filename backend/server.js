@@ -1,9 +1,12 @@
 require('dotenv').config();
 const express = require('express');
+const http = require('http');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const jwt = require('jsonwebtoken');
+const { Server } = require('socket.io');
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
@@ -12,8 +15,10 @@ const analyticsRoutes = require('./routes/analyticsRoutes');
 const friendsRoutes = require('./routes/friendsRoutes');
 const leaderboardRoutes = require('./routes/leaderboardRoutes');
 const homeRoutes = require('./routes/homeRoutes');
+const notificationsRoutes = require('./routes/notificationsRoutes');
 
 const app = express();
+const server = http.createServer(app);
 
 // Middleware
 const allowedOrigins = process.env.CORS_ORIGIN
@@ -63,6 +68,56 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/friends', friendsRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/home', homeRoutes);
+app.use('/api/notifications', notificationsRoutes);
+
+const corsOrigin = (origin, callback) => {
+  if (
+    !origin ||
+    allowedOrigins.length === 0 ||
+    allowedOrigins.includes(origin) ||
+    (!isProduction && devAllowedOrigins.includes(origin))
+  ) {
+    callback(null, true);
+    return;
+  }
+  callback(new Error('Not allowed by CORS'));
+};
+
+const io = new Server(server, {
+  cors: {
+    origin: corsOrigin,
+    credentials: true
+  }
+});
+
+io.use((socket, next) => {
+  try {
+    const bearerHeader = socket.handshake.auth?.token || socket.handshake.headers?.authorization || '';
+    const token = String(bearerHeader).startsWith('Bearer ')
+      ? String(bearerHeader).slice(7)
+      : String(bearerHeader || '').trim();
+
+    if (!token) return next(new Error('Unauthorized'));
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.user = decoded;
+    next();
+  } catch (error) {
+    next(new Error('Unauthorized'));
+  }
+});
+
+io.on('connection', (socket) => {
+  const userId = String(socket.user?.id || '');
+  if (userId) {
+    socket.join(`user:${userId}`);
+  }
+
+  socket.on('disconnect', () => {
+    // room cleanup is handled by socket.io automatically
+  });
+});
+
+app.set('io', io);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -81,6 +136,6 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

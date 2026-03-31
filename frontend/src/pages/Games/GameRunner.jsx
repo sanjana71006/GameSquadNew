@@ -12,6 +12,7 @@ import TcsCareerAscent from './TcsCareerAscent/TcsCareerAscent';
 
 const GameRunner = () => {
   const { gameId } = useParams();
+  const isCrunchMatch = gameId === 'crunch-match';
 
   const renderGame = () => {
     switch(gameId) {
@@ -31,8 +32,23 @@ const GameRunner = () => {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div className="container" style={{ flexGrow: 1, padding: 'clamp(10px, 2.4vw, 20px)', display: 'flex', flexDirection: 'column' }}>
-        <div className="glass-panel" style={{ flexGrow: 1, position: 'relative', overflow: 'auto' }}>
+      <div
+        className="container"
+        style={{
+          flexGrow: 1,
+          padding: 'clamp(10px, 2.4vw, 20px)',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
+        <div
+          className="glass-panel"
+          style={{
+            flexGrow: isCrunchMatch ? 0 : 1,
+            position: 'relative',
+            overflow: isCrunchMatch ? 'visible' : 'auto'
+          }}
+        >
           {renderGame()}
         </div>
       </div>

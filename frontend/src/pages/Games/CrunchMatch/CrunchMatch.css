@@ -21,13 +21,27 @@
   background: var(--bg);
   color: var(--text);
   line-height: 1.45;
-  min-height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   max-width: 900px;
   margin: 0 auto;
   padding: 0.75rem 1rem 1.25rem;
   border-radius: 12px;
+}
+
+.crunch-app--menu {
+  background: transparent;
+  max-width: 760px;
+  padding-bottom: 0.75rem;
+}
+
+.crunch-app--menu .crunch-stage {
+  flex: 0;
+}
+
+.crunch-app--menu .crunch-panel {
+  flex: 0;
 }
 
 body.dark-mode .crunch-app, html.dark .crunch-app {
@@ -151,6 +165,77 @@ body.dark-mode .crunch-timer-wrap { background: rgba(255,255,255,0.1); }
   border-radius: 16px;
   box-shadow: var(--shadow);
   border: 1px solid var(--border);
+}
+
+.crunch-invite-card {
+  max-width: 760px;
+  width: min(96%, 760px);
+  margin: 0 auto;
+  padding: 2rem 2.1rem;
+}
+
+.crunch-invite-title {
+  color: var(--text);
+  font-size: clamp(1.55rem, 3.8vw, 2rem);
+  margin: 0.2rem 0 0.4rem;
+}
+
+.crunch-invite-subtitle {
+  color: var(--muted);
+  max-width: 40rem;
+  font-size: 1rem;
+  margin: 0 auto 1rem;
+}
+
+.crunch-invite-input {
+  width: min(100%, 540px);
+  padding: 0.9rem 1rem;
+  font-size: 1.08rem;
+  border-radius: 12px;
+  border: 2px solid var(--accent);
+  background: var(--surface);
+  color: var(--text);
+  margin-top: 0.35rem;
+}
+
+.crunch-invite-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+
+.crunch-invite-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.crunch-invite-back {
+  padding: 0.75rem 1.3rem;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.crunch-invite-send {
+  margin-top: 0;
+  min-width: 160px;
+  font-size: 1rem;
+}
+
+.crunch-invite-error {
+  color: #ef4444;
+  margin-top: 0.65rem;
+  font-weight: 600;
+}
+
+.crunch-invite-info {
+  color: var(--success);
+  margin-top: 0.65rem;
+  font-weight: 600;
 }
 
 .crunch-panel--start .crunch-logo {
@@ -373,3 +458,19 @@ html.dark .crunch-bubble-field, body.dark-mode .crunch-bubble-field { box-shadow
 .crunch-toast--ok { background: var(--success); }
 .crunch-toast--err { background: var(--error); }
 @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 780px) {
+  .crunch-invite-card {
+    width: 100%;
+    padding: 1.35rem 1rem;
+    border-radius: 12px;
+  }
+
+  .crunch-invite-title {
+    font-size: 1.45rem;
+  }
+
+  .crunch-invite-input {
+    font-size: 1rem;
+  }
+}
